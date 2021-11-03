@@ -28,6 +28,7 @@ done
 
 script="run_glue.py"
 script_args="--model_name_or_path ${model} \
+	     --batch_size ${batch_size} \
    	     --task_name ${task} \
              --do_eval \
              --output_dir ./tmp/"

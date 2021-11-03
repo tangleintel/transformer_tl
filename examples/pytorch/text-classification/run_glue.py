@@ -184,6 +184,10 @@ class ModelArguments:
             "with private models)."
         },
     )
+    batch_size: int = field(
+        default=1, metadata={"help": "Choose batch_size"}
+    )
+
 
 
 def main():
