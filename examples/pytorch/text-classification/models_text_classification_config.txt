@@ -4,7 +4,7 @@ ProsusAI/finbert MNLI BERT
 roberta-large-mnli MNLI RoBERTa
 chkla/roberta-argument MRPC RoBERTa
 cardiffnlp/twitter-roberta-base-sentiment MNLI RoBERTa
-# cardiffnlp/twitter-roberta-base-emotion MNLI RoBERTa
+cardiffnlp/twitter-roberta-base-emotion MNLI RoBERTa
 cardiffnlp/twitter-roberta-base-offensive MRPC RoBERTa
 distilbert-base-uncased-finetuned-sst-2-english SST2 DistilBERT
 typeform/distilbert-base-uncased-mnli MNLI DistilBERT

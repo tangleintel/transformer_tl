@@ -1707,13 +1707,13 @@ class BertForTokenClassification(BertPreTrainedModel):
     )
     def forward(
         self,
-        input_ids=None,
         attention_mask=None,
+        input_ids=None,
+        labels=None,
         token_type_ids=None,
         position_ids=None,
         head_mask=None,
         inputs_embeds=None,
-        labels=None,
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,

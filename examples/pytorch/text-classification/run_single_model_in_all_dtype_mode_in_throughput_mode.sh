@@ -1,5 +1,3 @@
-#./run_single_model_in_throughput_mode_text-classification.sh -d fp32 -p jit -i ipex -m bert-base-cased -t MNLI -b 160 -L log
-#./run_single_model_in_latency_mode_text-classification.sh -d fp32 -p jit -i stpt -m bert-base-cased -t MNLI -b 160 
 while getopts 'p:m:t:' OPTION
 do
     case $OPTION in
@@ -36,17 +34,21 @@ if [[ ! -d log ]];then
     mkdir -p log
 fi
 
-if [[ ! -d log/${model} ]];then
-    mkdir -p log/${model}
+logdir="log/${model}"
+
+if [[ ! -d $logdir ]];then
+    mkdir -p $logdir
 fi
+
+
 
 for bs in ${batch_sizes[@]}; do
     for datatype in ${precision[@]}; do
         for ipex in ${use_ipex[@]}; do
 	    for((idx=0;idx<${repeat};idx++)); do
 	        for pytorch_mode_i in ${pytorch_mode[@]}; do
-		    ./run_single_model_in_throughput_mode_text-classification.sh -d $datatype -i $ipex -p $pytorch_mode_i -m bert-base-cased -r idx -t MNLI -b $bs -L log/bert-base-cased-new
-		    sleep 30
+		    ./run_single_model_in_throughput_mode_text-classification.sh -d $datatype -i $ipex -p $pytorch_mode_i -m $model -r idx -t $task -b $bs -L ${logdir}
+		    sleep 25
 		done
 	    done
 	done
