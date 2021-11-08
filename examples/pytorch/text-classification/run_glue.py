@@ -41,6 +41,7 @@ from transformers import (
     default_data_collator,
     set_seed,
 )
+from text_classification_trainer import TextClassificationTrainer
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
@@ -184,18 +185,38 @@ class ModelArguments:
             "with private models)."
         },
     )
-    batch_size: int = field(
-        default=1, metadata={"help": "Choose batch_size"}
+    use_ipex: bool = field(
+        default=False, metadata={"help": "Choose if use IPEX"}
+    )
+    jit_mode: bool = field(
+        default=False, metadata={"help": "Choose if use jit mode"}
+    )
+    bf16: bool = field(
+        default=False, metadata={"help": "Choose if run with bf16"}
+    )
+    back_arch: str = field(
+        default=None, metadata={"help": "Choose which back architecture it runs"}
+    )
+    instance_id: int = field(
+        default=-1, metadata={"help": "Choose which instance_id it runs on"}
+    )
+    num_instances: int = field(
+        default=-1, metadata={"help": "Choose how many num_instances are used"}
     )
 
-
+@dataclass
+class MyTrainingArguments(TrainingArguments):
+    eval_batch_size: int = field(
+        default=1, 
+    )
 
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    #parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, MyTrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
@@ -425,8 +446,13 @@ def main():
         if "validation" not in raw_datasets and "validation_matched" not in raw_datasets:
             raise ValueError("--do_eval requires a validation dataset")
         eval_dataset = raw_datasets["validation_matched" if data_args.task_name == "mnli" else "validation"]
-        if data_args.max_eval_samples is not None:
-            eval_dataset = eval_dataset.select(range(data_args.max_eval_samples))
+        if training_args.eval_batch_size == 1:
+            dataset_len_for_bs1 = min(4000, len(eval_dataset))
+            eval_dataset = eval_dataset.select(range(dataset_len_for_bs1))
+        else:
+            eval_dataset = eval_dataset.select(range(len(eval_dataset) - len(eval_dataset) % training_args.eval_batch_size))
+        #if data_args.max_eval_samples is not None:
+            #eval_dataset = eval_dataset.select(range(data_args.max_eval_samples))
 
     if training_args.do_predict or data_args.task_name is not None or data_args.test_file is not None:
         if "test" not in raw_datasets and "test_matched" not in raw_datasets:
@@ -470,7 +496,17 @@ def main():
         data_collator = None
 
     # Initialize our Trainer
-    trainer = Trainer(
+    #trainer = Trainer(
+    #    model=model,
+    #    args=training_args,
+    #    train_dataset=train_dataset if training_args.do_train else None,
+    #    eval_dataset=eval_dataset if training_args.do_eval else None,
+    #    compute_metrics=compute_metrics,
+    #    tokenizer=tokenizer,
+    #    data_collator=data_collator,
+    #)
+
+    trainer = TextClassificationTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,
@@ -512,7 +548,8 @@ def main():
             eval_datasets.append(raw_datasets["validation_mismatched"])
 
         for eval_dataset, task in zip(eval_datasets, tasks):
-            metrics = trainer.evaluate(eval_dataset=eval_dataset)
+            #metrics = trainer.evaluate(eval_dataset=eval_dataset)
+            metrics = trainer.evaluate(use_ipex=model_args.use_ipex, jit_mode=model_args.jit_mode, bf16=model_args.bf16, back_arch=model_args.back_arch, instance_id=model_args.instance_id, num_instances=model_args.num_instances, eval_dataset=eval_dataset)
 
             max_eval_samples = (
                 data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
