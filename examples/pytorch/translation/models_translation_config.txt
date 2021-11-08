@@ -1,0 +1,6 @@
+t5-small wmt16 de-en T5
+t5-base wmt16 de-en T5
+t5-large wmt16 de-en T5
+Helsinki-NLP/opus-mt-en-de wmt16 de-en MarianMT
+Helsinki-NLP/opus-mt-en-ROMANCE wmt16 de-en MarianMT
+

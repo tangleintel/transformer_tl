@@ -1,0 +1,4 @@
+# alvaroalon2/biobert_chemical_ner xxx BERT
+dslim/bert-base-NER conll2003 BERT
+sshleifer/tiny-dbmdz-bert-large-cased-finetuned-conll03-english conll2003 BERT
+dbmdz/bert-large-cased-finetuned-conll03-english conll2003 BERT
